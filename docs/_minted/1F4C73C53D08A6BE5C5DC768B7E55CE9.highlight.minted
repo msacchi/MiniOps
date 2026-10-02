@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{C}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{conv1d\PYGZus{}cols\PYGZus{}op}\PYG{p}{(}\PYG{n}{h}\PYG{p}{)}
+\PYG{n}{Y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{C}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{X}
+\PYG{n}{Xa}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{C}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{Y}
+\end{MintedVerbatim}

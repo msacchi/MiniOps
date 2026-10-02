@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{oklin}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{errlin}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{linearity\PYGZus{}test}\PYG{p}{(}\PYG{n}{A}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{x1}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{x2}\PYG{p}{)}
+\PYG{n}{okadj}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{erradj}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{adjoint\PYGZus{}test}\PYG{p}{(}\PYG{n}{A}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{x}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{y}\PYG{p}{)}
+
+\PYG{n}{sigma}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{opnorm\PYGZus{}power}\PYG{p}{(}\PYG{n}{A}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{x}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{niter}\PYG{o}{=}\PYG{l+m+mi}{30}\PYG{p}{)}
+\end{MintedVerbatim}

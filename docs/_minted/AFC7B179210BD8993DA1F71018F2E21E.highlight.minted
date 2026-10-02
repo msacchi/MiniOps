@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{F}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{fft\PYGZus{}op}\PYG{p}{(}\PYG{p}{)}\PYG{+w}{                 }\PYG{c}{\PYGZsh{} unitary by default}
+\PYG{n}{X}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{F}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{x}
+\PYG{n}{x2}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{F}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{X}
+\end{MintedVerbatim}

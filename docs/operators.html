@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Operators - MiniOps</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section>
+<h1>Operators</h1>
+<ul>
+<li>conv1d_op</li>
+<li>conv1d_cols_op</li>
+<li>sampling_op</li>
+<li>trace_sampling_op</li>
+<li>blending_op</li>
+<li>scaling_op</li>
+<li>diag_op</li>
+<li>fft_op</li>
+<li>pad_op</li>
+<li>nudft1_op</li>
+<li>nudft2_op</li>
+<li>nudft3_op</li>
+<li>nudft_txy_op</li>
+<li>radon_tx_parab_op</li>
+<li>radon_tx_tp_chirp_op</li>
+</ul>
+<p>All operators support the standard MiniOps forward/adjoint syntax:</p>
+<pre><code>y = A * x
+xadj = A' * y</code></pre>
+<h2>Sampling convention</h2>
+<p><code>sampling_op(idx, n)</code> samples scalar entries of a vector. For arrays
+with time in dimension 1, <code>trace_sampling_op(idx, size(X))</code> samples
+complete traces and returns an <code>nt x length(idx)</code> matrix.</p>
+</section>
+</body>
+</html>

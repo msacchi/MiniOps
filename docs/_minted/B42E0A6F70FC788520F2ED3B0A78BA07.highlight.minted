@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{S}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{scaling\PYGZus{}op}\PYG{p}{(}\PYG{l+m+mf}{0.5}\PYG{p}{)}
+\PYG{n}{y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{S}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{x}
+
+\PYG{n}{D}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{diag\PYGZus{}op}\PYG{p}{(}\PYG{n}{w}\PYG{p}{)}
+\PYG{n}{y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{D}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{x}
+\PYG{n}{xa}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{D}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{y}
+\end{MintedVerbatim}

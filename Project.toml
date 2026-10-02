@@ -1,0 +1,18 @@
+name = "MiniOps"
+uuid = "f9292dd6-9ce9-44a3-a5cb-6efdde7c1f20"
+version = "0.1.0"
+
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SeisProcessing = "3ac90d68-5a11-50c7-932e-af3f40d97fdc"
+
+[compat]
+CairoMakie = "0.15.14"
+LinearAlgebra = "1.12.0"
+Random = "1.11.0"
+SeisProcessing = "0.1.3"

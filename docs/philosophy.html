@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Philosophy - MiniOps</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<section>
+<h1>Philosophy</h1>
+
+<p>
+MiniOps avoids explicit matrices. Instead, operators are defined as:
+</p>
+
+<pre><code>
+y = A * x
+x = A' * y
+</code></pre>
+
+<p>
+This enables:
+</p>
+
+<ul>
+<li>Large-scale inverse problems</li>
+<li>Matrix-free implementations</li>
+<li>Clear mapping between math and code</li>
+</ul>
+
+<p>
+Every operator must satisfy:
+</p>
+
+<pre><code>
+dot(A*x, y) ≈ dot(x, A'*y)
+</code></pre>
+
+</section>
+</body>
+</html>

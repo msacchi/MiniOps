@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MiniOps.jl</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- MathJax for LaTeX -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']]
+  }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+
+<body>
+
+<header>
+    <h1>MiniOps.jl</h1>
+    <p class="subtitle">Matrix-free operators for inverse problems, seismic signal processing, and geophysical imaging in Julia</p>
+</header>
+
+<section class="hero">
+    <h2>Operators, not matrices</h2>
+
+    <p>
+        MiniOps.jl is a lightweight Julia framework for building and composing
+        linear operators through their forward and adjoint actions. The central
+        idea is simple: in large-scale inverse problems, we often do not need to
+        form a matrix explicitly. We only need to know how it acts on a vector
+        and how its adjoint acts on data.
+    </p>
+
+    <pre><code>y = A * x
+xadj = A' * y</code></pre>
+</section>
+
+<section>
+<h2>Explicit versus implicit operators</h2>
+
+<p>
+Many linear inverse problems are written in the familiar form
+</p>
+
+\[
+d = A m,
+\]
+
+<p>
+where \(m\) is the unknown model, \(d\) is the observed data, and \(A\) is a
+linear modelling operator. In small problems, \(A\) may be stored explicitly as
+a matrix. However, in seismic signal processing and geophysical inversion,
+\(A\) is often far too large to assemble or store.
+</p>
+
+<p>
+Instead, the operator is represented implicitly:
+</p>
+
+\[
+m \mapsto A m,
+\qquad
+d \mapsto A^{\ast} d.
+\]
+
+<p>
+Here \(A^{\ast}\) denotes the adjoint operator. This is the natural language of
+large-scale inverse problems: modelling and migration, synthesis and analysis,
+restriction and interpolation, forward wave propagation and adjoint-state
+backpropagation.
+</p>
+</section>
+
+<section>
+<h2>The adjoint test</h2>
+
+<p>
+Every MiniOps operator is expected to satisfy the discrete adjoint identity
+</p>
+
+\[
+\langle A m, d \rangle = \langle m, A^{\ast} d \rangle.
+\]
+
+<p>
+This identity is more than a mathematical detail. It is the basic consistency
+condition required by gradient-based inversion, least-squares migration,
+sparse recovery, and many iterative algorithms.
+</p>
+
+<pre><code>ok, err = adjoint_test(A, m, d)</code></pre>
+
+<p>
+If this test fails, gradients are wrong, least-squares solvers may behave
+poorly, and inversion results can be misleading.
+</p>
+</section>
+
+<section>
+<h2>Why this matters in seismic processing</h2>
+
+<p>
+Seismic processing is full of operators that are naturally implicit. Examples
+include:
+</p>
+
+<ul>
+<li>Fourier transforms and inverse Fourier transforms</li>
+<li>sampling, masking, and trace selection</li>
+<li>convolution and deconvolution operators</li>
+<li>Radon transforms</li>
+<li>blending and deblending operators</li>
+<li>migration and demigration operators</li>
+<li>wave-equation modelling and adjoint modelling</li>
+</ul>
+
+<p>
+For example, a sparse deblending problem may be written as
+</p>
+
+\[
+\min_z
+\frac{1}{2}
+\left\|
+B F z - y
+\right\|_2^2
++
+\lambda \|z\|_1,
+\]
+
+<p>
+where \(B\) is a blending operator, \(F\) maps Fourier coefficients to data,
+and \(z\) is sparse in the transform domain. The algorithm does not require the
+matrix \(BF\). It only requires the actions
+</p>
+
+\[
+z \mapsto BFz,
+\qquad
+r \mapsto F^{\ast}B^{\ast}r.
+\]
+
+<p>
+MiniOps is designed exactly for this style of computation.
+</p>
+</section>
+
+<section>
+<h2>Operator composition</h2>
+
+<p>
+MiniOps operators can be composed algebraically. If
+</p>
+
+\[
+L = A B,
+\]
+
+<p>
+then
+</p>
+
+\[
+Lx = A(Bx),
+\qquad
+L^{\ast}y = B^{\ast}(A^{\ast}y).
+\]
+
+<p>
+In Julia this becomes:
+</p>
+
+<pre><code>L = A * B
+
+y = L * x
+xadj = L' * y</code></pre>
+
+<p>
+This allows complex inverse-problem operators to be assembled from simple,
+testable building blocks.
+</p>
+</section>
+
+<section>
+<h2>Example: Radon transform</h2>
+
+<p>
+A frequency-domain linear Radon transform can be written as
+</p>
+
+\[
+\hat d(\omega, x)
+=
+\int
+\hat m(\omega, p)
+e^{i\omega p x}
+\, dp.
+\]
+
+<p>
+After discretization,
+</p>
+
+\[
+\hat d_n(\omega)
+=
+\sum_m
+\hat m_m(\omega)
+e^{i\omega p_m x_n}.
+\]
+
+<p>
+This looks like a dense matrix multiplication, but it can be implemented
+without forming the dense matrix. MiniOps supports this style through explicit
+or chirp-based implementations.
+</p>
+
+<pre><code>R = radon_tx_tp_chirp_op(dt, x0, dx, nx, p0, dp, np)
+
+d  = R * m      # tau-p to t-x
+ma = R' * d     # t-x to tau-p adjoint</code></pre>
+
+<p>
+The chirp version uses FFT-based convolution internally, but externally it
+behaves like any other MiniOps operator.
+</p>
+</section>
+
+<section>
+<h2>Example: least-squares inversion</h2>
+
+<p>
+Many geophysical inverse problems have the form
+</p>
+
+\[
+\min_m
+\frac{1}{2}
+\| A m - d \|_2^2
++
+\lambda R(m),
+\]
+
+<p>
+where \(R(m)\) is a regularization or sparsity-promoting penalty. The gradient
+of the data misfit is
+</p>
+
+\[
+\nabla \phi(m)
+=
+A^{\ast}(A m - d).
+\]
+
+<p>
+Again, this requires only the forward action \(A m\) and the adjoint action
+\(A^{\ast}r\). No explicit matrix is needed.
+</p>
+
+<pre><code>r = A * m - d
+g = A' * r</code></pre>
+</section>
+
+<section>
+<h2>MiniOps philosophy</h2>
+
+<p>
+MiniOps.jl is intentionally small. It is not meant to hide the mathematics.
+Instead, it exposes the essential computational structure:
+</p>
+
+<ul>
+<li>define a forward operation</li>
+<li>define its adjoint</li>
+<li>test the adjoint identity</li>
+<li>compose operators</li>
+<li>use them in inversion algorithms</li>
+</ul>
+
+<p>
+This makes MiniOps useful for teaching, prototyping, and research in seismic
+signal processing and geophysical inversion.
+</p>
+</section>
+
+<section>
+<h2>Explore</h2>
+
+<div class="links">
+    <a href="philosophy.html">Philosophy</a>
+    <a href="operators.html">Operators</a>
+    <a href="examples.html">Examples</a>
+</div>
+
+</section>
+
+<section>
+<h2>Get the code</h2>
+
+<p>
+<a class="button" href="https://github.com/msacchi/MiniOps.jl">
+View MiniOps.jl on GitHub
+</a>
+</p>
+
+</section>
+
+<footer>
+<p>MiniOps.jl — Matrix-free operators for inverse problems in Julia</p>
+</footer>
+
+</body>
+</html>

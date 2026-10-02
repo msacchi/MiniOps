@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{h}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{l+m+mf}{1.0}\PYG{p}{,}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mf}{0.25}\PYG{p}{]}
-\PYG{n}{C}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{conv1d\PYGZus{}op}\PYG{p}{(}\PYG{n}{h}\PYG{p}{)}
-\PYG{n}{y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{C}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{x}
-\PYG{n}{xa}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{C}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{y}
-\end{MintedVerbatim}

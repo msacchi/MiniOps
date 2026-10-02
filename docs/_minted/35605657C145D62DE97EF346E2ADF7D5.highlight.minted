@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{j}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k+kt}{LinearIndices}\PYG{p}{(}\PYG{p}{(}\PYG{n}{nx}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{ny}\PYG{p}{)}\PYG{p}{)}\PYG{p}{[}\PYG{n}{ix}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{iy}\PYG{p}{]}
-\end{MintedVerbatim}

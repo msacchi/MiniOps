@@ -1,5 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{P}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{pad\PYGZus{}op}\PYG{p}{(}\PYG{p}{(}\PYG{l+m+mi}{100}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{60}\PYG{p}{)}\PYG{p}{,}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mi}{20}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{10}\PYG{p}{)}\PYG{p}{,}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mi}{20}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{10}\PYG{p}{)}\PYG{p}{)}
-\PYG{n}{Y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{X}
-\PYG{n}{X2}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{P}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{Y}
-\end{MintedVerbatim}

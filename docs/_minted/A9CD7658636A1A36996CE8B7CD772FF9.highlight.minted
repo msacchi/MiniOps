@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{u}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{iht}\PYG{p}{(}\PYG{n}{A}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{y}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{u0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{tau}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{step}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{niter}\PYG{o}{=}\PYG{l+m+mi}{200}\PYG{p}{)}
-\end{MintedVerbatim}

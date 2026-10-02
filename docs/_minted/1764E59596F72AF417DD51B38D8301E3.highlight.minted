@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{R}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{radon\PYGZus{}tx\PYGZus{}tp\PYGZus{}chirp\PYGZus{}op}\PYG{p}{(}\PYG{n}{dt}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{x0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{dx}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{nx}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{p0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{dp}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{np}\PYG{p}{;}
-\PYG{+w}{                         }\PYG{n}{f1}\PYG{o}{=}\PYG{l+m+mf}{2.0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{f2}\PYG{o}{=}\PYG{l+m+mf}{60.0}\PYG{p}{)}
-\PYG{n}{d}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{m}
-\PYG{n}{ma}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{R}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{d}
-\end{MintedVerbatim}

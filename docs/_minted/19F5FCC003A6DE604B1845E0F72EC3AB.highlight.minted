@@ -1,9 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{N}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{128}
-\PYG{n}{A}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{nudft1\PYGZus{}op}\PYG{p}{(}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{N}\PYG{p}{)}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{dx}\PYG{p}{)}
-\PYG{n}{X}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{randn}\PYG{p}{(}\PYG{k+kt}{ComplexF64}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{N}\PYG{p}{)}
-
-\PYG{n}{x1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{A}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{X}
-\PYG{n}{x2}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{sqrt}\PYG{p}{(}\PYG{n}{N}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{.*}\PYG{+w}{ }\PYG{n}{ifft}\PYG{p}{(}\PYG{n}{X}\PYG{p}{)}
-\PYG{n+nd}{@show}\PYG{+w}{ }\PYG{n}{norm}\PYG{p}{(}\PYG{n}{x1}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{x2}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{norm}\PYG{p}{(}\PYG{n}{x2}\PYG{p}{)}
-\end{MintedVerbatim}

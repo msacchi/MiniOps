@@ -2,20 +2,27 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs,longtable,array}
+\usepackage{minted}
 \usepackage{xcolor}
-\usepackage{listings}
 \usepackage[hidelinks]{hyperref}
+\definecolor{codegray}{gray}{0.6}
 
-\definecolor{codegray}{gray}{0.96}
-\lstset{
-  language=Python,
-  basicstyle=\ttfamily\small,
-  backgroundcolor=\color{codegray},
-  frame=single,
-  breaklines=true,
-  columns=fullflexible,
-  keepspaces=true
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code listings: minted (requires -shell-escape)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\definecolor{LightGray}{rgb}{0.95,0.95,0.95}
+
+\setminted{
+  bgcolor=LightGray,
+  bgcolorpadding=6pt,
+  breaklines,
+  fontsize=\footnotesize,
+  xleftmargin=8pt,
+  xrightmargin=8pt
 }
+
 
 \title{MiniOps.jl: Operator and Solver Reference}
 \author{Mauricio D. Sacchi}
@@ -87,7 +94,7 @@ For a vector $x\in\mathbb{R}^{n}$ and indices $i_1,\ldots,i_{n_s}$,
 The adjoint scatters the values back to a length-$n$ vector.  If an index is
 repeated, its adjoint contributions are summed.
 
-\begin{lstlisting}
+\begin{minted}{julia}
 n = 100
 idx = [1, 5, 20, 75]
 S = sampling_op(idx, n)
@@ -95,7 +102,7 @@ S = sampling_op(idx, n)
 x = randn(n)
 d = S * x                 # length(idx)
 xa = S' * d               # length n
-\end{lstlisting}
+\end{minted}
 
 \subsection{Whole-trace sampling for 2-D through N-D arrays}
 For seismic-style arrays, dimension 1 is time.  Let
@@ -118,7 +125,7 @@ so the forward result always has size
 The adjoint returns an array with the original full shape and sums repeated
 trace indices.
 
-\begin{lstlisting}
+\begin{minted}{julia}
 # (time, x)
 X2 = randn(1000, 120)
 S2 = trace_sampling_op([1, 20, 75], size(X2))
@@ -136,49 +143,49 @@ X5 = randn(500, 10, 8, 4, 3)
 S5 = trace_sampling_op([1, 17, 200], size(X5))
 D5 = S5 * X5                    # 500 x 3
 X5a = S5' * D5                  # size(X5)
-\end{lstlisting}
+\end{minted}
 
 For spatial coordinates such as \texttt{(ix,iy)}, convert to the flattened
 trace number with Julia's column-major convention:
-\begin{lstlisting}
+\begin{minted}{julia}
 j = LinearIndices((nx, ny))[ix, iy]
-\end{lstlisting}
+\end{minted}
 The generic call \texttt{sampling\_op(idx,size(X))} is backward-compatible
 and delegates to whole-trace sampling when \texttt{ndims(X) >= 2}.
 
 \section{Operator examples}
 \subsection{Convolution}
-\begin{lstlisting}
+\begin{minted}{julia}
 h = [1.0, -0.5, 0.25]
 C = conv1d_op(h)
 y = C * x
 xa = C' * y
-\end{lstlisting}
+\end{minted}
 
 For a gather with time along rows and traces along columns:
-\begin{lstlisting}
+\begin{minted}{julia}
 C = conv1d_cols_op(h)
 Y = C * X
 Xa = C' * Y
-\end{lstlisting}
+\end{minted}
 
 \subsection{Scaling and diagonal weights}
-\begin{lstlisting}
+\begin{minted}{julia}
 S = scaling_op(0.5)
 y = S * x
 
 D = diag_op(w)
 y = D * x
 xa = D' * y
-\end{lstlisting}
+\end{minted}
 Both operators use complex conjugation in their adjoints.
 
 \subsection{FFT}
-\begin{lstlisting}
+\begin{minted}{julia}
 F = fft_op()                 # unitary by default
 X = F * x
 x2 = F' * X
-\end{lstlisting}
+\end{minted}
 With the default normalization,
 \[
   Fx = \frac{1}{\sqrt{N}}\operatorname{fft}(x),\qquad
@@ -187,19 +194,19 @@ With the default normalization,
 Therefore \texttt{F' * (F * x)} reproduces \texttt{x} to roundoff.
 
 \subsection{Padding}
-\begin{lstlisting}
+\begin{minted}{julia}
 P = pad_op((100, 60), (20, 10), (20, 10))
 Y = P * X
 X2 = P' * Y
-\end{lstlisting}
+\end{minted}
 
 \subsection{Blending}
-\begin{lstlisting}
+\begin{minted}{julia}
 source_times = [0.0, 0.37, 0.81]
 B = blending_op(source_times, dt, nt)
 b = B * D                       # D is nt x ns
 Da = B' * b
-\end{lstlisting}
+\end{minted}
 
 \section{NUDFT normalization}
 The Taylor NUDFT operators use a \emph{unitary} Fourier convention.  In one
@@ -219,7 +226,7 @@ A direct comparison against \texttt{ifft(X)} will therefore differ by
 $\sqrt{N}$.  This is a normalization convention, not an irregular-sampling
 error.  The same convention is used by the multidimensional Taylor NUDFT.
 
-\begin{lstlisting}
+\begin{minted}{julia}
 N = 128
 A = nudft1_op(zeros(N), dx)
 X = randn(ComplexF64, N)
@@ -227,57 +234,57 @@ X = randn(ComplexF64, N)
 x1 = A * X
 x2 = sqrt(N) .* ifft(X)
 @show norm(x1 - x2) / norm(x2)
-\end{lstlisting}
+\end{minted}
 
 \section{Radon operators}
 \subsection{Parabolic Radon}
-\begin{lstlisting}
+\begin{minted}{julia}
 R = radon_tx_parab_op(dt, h, q; href=1000.0)
 d = R * m                       # m: nt x nq
 a = R' * d                      # a: nt x nq
-\end{lstlisting}
+\end{minted}
 
 \subsection{Linear Radon by chirp factorization}
-\begin{lstlisting}
+\begin{minted}{julia}
 R = radon_tx_tp_chirp_op(dt, x0, dx, nx, p0, dp, np;
                          f1=2.0, f2=60.0)
 d = R * m
 ma = R' * d
-\end{lstlisting}
+\end{minted}
 
 \section{Diagnostics}
 Every newly written operator should first pass a linearity test and then an
 adjoint test.
-\begin{lstlisting}
+\begin{minted}{julia}
 oklin, errlin = linearity_test(A, x1, x2)
 okadj, erradj = adjoint_test(A, x, y)
 
 sigma = opnorm_power(A, x; niter=30)
-\end{lstlisting}
+\end{minted}
 For a correct double-precision implementation, the adjoint error is usually
 close to machine precision, although interpolation, FFT conventions, and
 single precision can justify a looser tolerance.
 
 \section{Sparse solvers}
 \subsection{ISTA}
-\begin{lstlisting}
+\begin{minted}{julia}
 sigma = opnorm_power(A, u0)
 step = 0.9 / sigma^2
 u = ista(A, y, u0, mu, step; niter=200)
-\end{lstlisting}
+\end{minted}
 This minimizes an $\ell_1$-regularized least-squares objective using soft
 thresholding.
 
 \subsection{IHT}
-\begin{lstlisting}
+\begin{minted}{julia}
 u = iht(A, y, u0, tau, step; niter=200)
-\end{lstlisting}
+\end{minted}
 IHT uses hard thresholding and is useful when explicit sparsity is desired.
 
 \subsection{CGLS with quadratic regularization}
-\begin{lstlisting}
+\begin{minted}{julia}
 x = cgls(A, b, mu, x0; tol=1e-6, max_iter=500)
-\end{lstlisting}
+\end{minted}
 The implemented objective is proportional to
 \[
    \|Ax-b\|_2^2 + \mu\|x\|_2^2.

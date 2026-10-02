@@ -1,5 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{R}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{radon\PYGZus{}tx\PYGZus{}parab\PYGZus{}op}\PYG{p}{(}\PYG{n}{dt}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{q}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{href}\PYG{o}{=}\PYG{l+m+mf}{1000.0}\PYG{p}{)}
-\PYG{n}{d}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{                       }\PYG{c}{\PYGZsh{} m: nt x nq}
-\PYG{n}{a}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{R}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{                      }\PYG{c}{\PYGZsh{} a: nt x nq}
-\end{MintedVerbatim}

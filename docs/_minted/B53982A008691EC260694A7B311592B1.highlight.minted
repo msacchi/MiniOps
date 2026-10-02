@@ -1,9 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{n}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{100}
-\PYG{n}{idx}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{5}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{75}\PYG{p}{]}
-\PYG{n}{S}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{sampling\PYGZus{}op}\PYG{p}{(}\PYG{n}{idx}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{n}\PYG{p}{)}
-
-\PYG{n}{x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{randn}\PYG{p}{(}\PYG{n}{n}\PYG{p}{)}
-\PYG{n}{d}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{S}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{                 }\PYG{c}{\PYGZsh{} length(idx)}
-\PYG{n}{xa}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{S}\PYG{o}{\PYGZsq{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{               }\PYG{c}{\PYGZsh{} length n}
-\end{MintedVerbatim}

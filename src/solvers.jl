@@ -1,29 +1,66 @@
+using Printf
+
+# ---------------------------------------------------------------------
+# Internal reporting utilities
+# ---------------------------------------------------------------------
+
+"""
+    _solver_header(name)
+
+Print a common convergence-table header for iterative solvers.
+
+This is an internal utility used by `iht`, `ista`, and `cgls`.
+"""
+function _solver_header(name)
+    println()
+    println(name)
+    @printf("%8s %16s %16s %16s\n",
+            "iter", "rel_residual", "residual", "cost")
+    println(repeat("-", 60))
+end
+
+
+"""
+    _solver_report(k, rnorm, rnorm0, cost)
+
+Print one row of solver convergence information.
+
+The reported relative residual is
+
+    rnorm / rnorm0
+
+where `rnorm0` is the norm of the initial residual.
+"""
+function _solver_report(k, rnorm, rnorm0, cost)
+    @printf("%8d %16.6e %16.6e %16.6e\n",
+            k, rnorm / rnorm0, rnorm, cost)
+end
+
+
 """
     hard_threshold(u, tau) -> v
 
-Apply hard-thresholding to an array.
+Apply elementwise hard thresholding.
 
-Each element of `u` whose magnitude is smaller than `tau` is set to
-zero. Elements with magnitude greater than or equal to `tau` are
-left unchanged.
+For each element `u[i]`,
 
-Arguments
----------
-u   : Input array (real or complex).
-tau : Non-negative threshold parameter.
+- if `abs(u[i]) >= tau`, the value is retained;
+- if `abs(u[i]) < tau`, the value is set to zero.
 
-Returns
--------
-v : Array
-    Thresholded output of the same shape as `u`.
+# Arguments
 
-Notes
------
-- For tau = 0, the input is returned unchanged.
-- The function is applied elementwise.
-- Unlike soft-thresholding, retained coefficients are not reduced
-  in magnitude.
-- Works for real or complex arrays.
+- `u`: Input array. May be real or complex.
+- `tau`: Non-negative hard-threshold level.
+
+# Returns
+
+- `v`: Thresholded array with the same shape as `u`.
+
+# Notes
+
+- For `tau = 0`, all entries are retained.
+- Hard thresholding does not shrink the amplitude of retained coefficients.
+- The operation is applied elementwise.
 """
 function hard_threshold(u, tau)
     return ifelse.(abs.(u) .>= tau, u, zero(eltype(u)))
@@ -31,59 +68,109 @@ end
 
 
 """
-    iht(A, y, u0, tau, step_size; niter = 500, verbose = false) -> u
+    iht(A, y, u0, tau, step_size;
+        niter = 500,
+        verbose = false,
+        print_every = 20) -> u
 
-Solve a sparse inverse problem using iterative hard thresholding (IHT).
+Solve a sparse inverse problem using Iterative Hard Thresholding (IHT).
 
-The method alternates between a gradient descent step for the data
-misfit term and a hard-thresholding step that promotes sparsity while
-preserving the amplitude of retained coefficients.
+At iteration `k`, the method performs a gradient step for the
+least-squares data misfit,
 
-Arguments
----------
-A         : Linear operator (MiniOps.Op).
+    0.5 * ||A*u - y||_2^2,
 
-y         : Observed data.
+followed by hard thresholding:
 
-u0        : Initial estimate of the solution.
+    r = A*u - y
+    u = hard_threshold(u - step_size * A' * r, tau)
 
-tau       : Hard-threshold parameter.
+The threshold `tau` directly controls which coefficients are retained.
+Unlike ISTA, IHT does not correspond here to an explicitly added
+regularization term in the reported objective. Therefore the reported
+`cost` is the data-misfit cost
 
-step_size : Gradient descent step size.
+    cost = 0.5 * ||A*u - y||_2^2.
 
-niter     : Number of iterations (default = 500).
+# Arguments
 
-verbose   : Print convergence information every 20 iterations.
+- `A`: Forward linear operator or matrix. The adjoint must be available as `A'`.
+- `y`: Observed data.
+- `u0`: Initial model or coefficient array.
+- `tau`: Hard-threshold level.
+- `step_size`: Gradient-descent step size.
 
-Returns
--------
-u : Array
-    Estimated solution after `niter` iterations.
+# Keyword arguments
 
-Notes
------
-- The step size should typically be smaller than 1 / ||A||².
-- Uses hard_threshold after each gradient step.
-- Retained coefficients are not shrunk in amplitude.
-- Works for vectors or multidimensional arrays.
-- Useful for sparse reconstruction and inverse problems.
+- `niter=500`: Number of IHT iterations.
+- `verbose=false`: If `true`, print convergence information.
+- `print_every=20`: Print convergence information every `print_every`
+  iterations. Iteration 0 and the final iteration are also printed.
+
+# Convergence output
+
+When `verbose=true`, the columns are
+
+- `iter`: Iteration number.
+- `rel_residual`: `||r_k||_2 / ||r_0||_2`.
+- `residual`: `||r_k||_2`.
+- `cost`: `0.5 * ||r_k||_2^2`.
+
+The residual reported for iteration `k` is evaluated after the
+iteration-`k` model update.
+
+# Returns
+
+- `u`: Estimated model or coefficient array after `niter` iterations.
+
+# Notes
+
+- A typical stability requirement is
+
+      step_size < 1 / ||A||_2^2.
+
+- The function returns only the solution array, preserving the original
+  calling convention.
+- Works with vectors and multidimensional arrays as long as `A*u` and
+  `A'*r` are defined.
+
+# Example
+
+```julia
+u = iht(A, y, zeros(size(u_true)), tau, step_size;
+        niter=200, verbose=true, print_every=20)
+```
 """
-function iht(A, y, u0, tau, step_size; niter=500, verbose=false)
+function iht(A, y, u0, tau, step_size;
+             niter=500, verbose=false, print_every=20)
+
+    print_every >= 1 ||
+        throw(ArgumentError("print_every must be at least 1"))
+
     u = copy(u0)
 
+    r0 = A * u .- y
+    rnorm0_raw = norm(r0)
+    rnorm0 = max(rnorm0_raw, eps(Float64))
+
+    if verbose
+        _solver_header("IHT")
+        cost0 = 0.5 * rnorm0_raw^2
+        _solver_report(0, rnorm0_raw, rnorm0, cost0)
+    end
+
     for k in 1:niter
-        # Gradient of 0.5 * ||A*u - y||^2
         r = A * u .- y
         g = A' * r
 
-        # Gradient step on L2 term
         u .= u .- step_size .* g
-
-        # Hard-thresholding step
         u .= hard_threshold(u, tau)
 
-        if verbose && (k % 20 == 0)
-            @show k, maximum(abs.(r))
+        if verbose && (k % print_every == 0 || k == niter)
+            r_report = A * u .- y
+            rnorm = norm(r_report)
+            cost = 0.5 * rnorm^2
+            _solver_report(k, rnorm, rnorm0, cost)
         end
     end
 
@@ -94,92 +181,141 @@ end
 """
     soft_threshold(u, tau) -> v
 
-Apply soft-thresholding (shrinkage) to an array.
+Apply elementwise soft thresholding (shrinkage).
 
-Each element of `u` is shrunk toward zero according to the threshold parameter `tau`. Values with 
-magnitude below `tau` are mapped to zero, and larger values are reduced in magnitude.
+For each element `u[i]`, the magnitude is reduced by `tau` while
+preserving phase/sign, and values with magnitude less than or equal
+to the threshold are mapped to zero.
 
-Arguments
----------
-u   : Input array (real or complex).
-tau : Non-negative threshold parameter.
+Equivalently,
 
-Returns
--------
-v : Array
-    Thresholded output of the same shape as `u`.
+    v[i] = max(0, 1 - tau / abs(u[i])) * u[i].
 
-Notes
------
-- For tau = 0, the input is returned unchanged.
-- The function is applied elementwise.
+# Arguments
+
+- `u`: Input array. May be real or complex.
+- `tau`: Non-negative soft-threshold level.
+
+# Returns
+
+- `v`: Thresholded array with the same shape as `u`.
+
+# Notes
+
+- For `tau = 0`, the input is unchanged.
+- The operation is applied elementwise.
 - Division by zero is avoided internally.
-- This is the proximal operator for the L1 norm.
+- Soft thresholding is the proximal operator of the `L1` norm.
 """
 function soft_threshold(u, tau)
-    # tau >= 0 (scalar)
-    amp    = abs.(u)
-    denom  = amp .+ eps(Float64)   # avoid division by zero
+    amp = abs.(u)
+    denom = amp .+ eps(Float64)
     factor = max.(0.0, 1 .- tau ./ denom)
     return factor .* u
 end
 
 
-
 """
-    ista(A, y, u0, mu, step_size; niter = 100, verbose = false) -> u
+    ista(A, y, u0, mu, step_size;
+         niter = 100,
+         verbose = false,
+         print_every = 20) -> u
 
-Solve an L1-regularized least squares problem using ISTA
+Solve an `L1`-regularized least-squares problem using ISTA
 (Iterative Shrinkage-Thresholding Algorithm).
 
-The method alternates between a gradient descent step for the data
-misfit term and a soft-thresholding step that promotes sparsity.
+ISTA minimizes
 
-Arguments
----------
-A         : Linear operator (MiniOps.Op).
+    cost(u) = 0.5 * ||A*u - y||_2^2 + mu * ||u||_1.
 
-y         : Observed data.
+Each iteration consists of a gradient step for the quadratic data
+misfit followed by soft thresholding:
 
-u0        : Initial estimate of the solution.
+    r = A*u - y
+    u = soft_threshold(u - step_size * A' * r,
+                       mu * step_size)
 
-mu        : L1 regularization weight.
+# Arguments
 
-step_size : Gradient descent step size.
+- `A`: Forward linear operator or matrix. The adjoint must be available as `A'`.
+- `y`: Observed data.
+- `u0`: Initial model or coefficient array.
+- `mu`: `L1` regularization weight.
+- `step_size`: Gradient-descent step size.
 
-niter     : Number of iterations (default = 100).
+# Keyword arguments
 
-verbose   : Print convergence information every 20 iterations.
+- `niter=100`: Number of ISTA iterations.
+- `verbose=false`: If `true`, print convergence information.
+- `print_every=20`: Print convergence information every `print_every`
+  iterations. Iteration 0 and the final iteration are also printed.
 
-Returns
--------
-u : Array
+# Convergence output
 
-    Estimated solution after `niter` iterations.
+When `verbose=true`, the columns are
 
-Notes
------
-- The step size should be smaller than 1 / ||A||² for convergence.
-- Uses soft_threshold as the proximal operator.
-- Works for vectors or multidimensional arrays.
-- Often used in sparse reconstruction and inverse problems.
+- `iter`: Iteration number.
+- `rel_residual`: `||r_k||_2 / ||r_0||_2`.
+- `residual`: `||r_k||_2`.
+- `cost`:
+
+      0.5 * ||A*u_k - y||_2^2 + mu * ||u_k||_1.
+
+The residual and cost reported for iteration `k` are evaluated after
+the iteration-`k` model update.
+
+# Returns
+
+- `u`: Estimated model or coefficient array after `niter` iterations.
+
+# Notes
+
+- A standard convergence condition is
+
+      step_size < 1 / ||A||_2^2.
+
+- The function returns only the solution array, preserving the original
+  calling convention.
+- Works with vectors and multidimensional arrays as long as `A*u` and
+  `A'*r` are defined.
+
+# Example
+
+```julia
+u = ista(A, y, zeros(size(u_true)), mu, step_size;
+         niter=200, verbose=true, print_every=20)
+```
 """
-function ista(A, y, u0, mu, step_size; niter=100, verbose=false)
+function ista(A, y, u0, mu, step_size;
+              niter=100, verbose=false, print_every=20)
+
+    print_every >= 1 ||
+        throw(ArgumentError("print_every must be at least 1"))
+
     u = copy(u0)
 
+    r0 = A * u .- y
+    rnorm0_raw = norm(r0)
+    rnorm0 = max(rnorm0_raw, eps(Float64))
+
+    if verbose
+        _solver_header("ISTA")
+        cost0 = 0.5 * rnorm0_raw^2 + mu * sum(abs, u)
+        _solver_report(0, rnorm0_raw, rnorm0, cost0)
+    end
+
     for k in 1:niter
-        # Gradient of 0.5 * ||A*u - y||^2
         r = A * u .- y
         g = A' * r
 
-        # Gradient step on L2 term
         u .= u .- step_size .* g
-
-        # Prox step (soft-threshold) for L1
         u .= soft_threshold(u, mu * step_size)
 
-        if verbose && (k % 20 == 0)
-            @show k, maximum(abs.(r))
+        if verbose && (k % print_every == 0 || k == niter)
+            r_report = A * u .- y
+            rnorm = norm(r_report)
+            cost = 0.5 * rnorm^2 + mu * sum(abs, u)
+            _solver_report(k, rnorm, rnorm0, cost)
         end
     end
 
@@ -187,81 +323,139 @@ function ista(A, y, u0, mu, step_size; niter=100, verbose=false)
 end
 
 
-
-
 """
-    cgls(A, b, mu, x0; tol = 1e-6, max_iter = 1000) -> x
+    cgls(A, b, mu, x0;
+         tol = 1e-6,
+         max_iter = 1000,
+         verbose = false,
+         print_every = 20) -> x
 
-Solve a quadratic regularized least squares problem using the
-Conjugate Gradient Least Squares (CGLS) algorithm.
+Solve a quadratically regularized least-squares problem using
+Conjugate Gradient Least Squares (CGLS).
 
-This method minimizes a least-squares objective with Tikhonov-style
-regularization by iteratively solving the normal equations using
-conjugate gradients.
+The method minimizes the Tikhonov objective
 
-Arguments
----------
-A         : Linear operator or matrix.
+    cost(x) = 0.5 * ||A*x - b||_2^2
+            + 0.5 * mu * ||x||_2^2,
 
-b         : Right-hand side vector or array.
+which leads to the normal equations
 
-mu        : Regularization parameter.
+    (A' * A + mu * I) * x = A' * b.
 
-x0        : Initial guess for the solution.
+The implementation applies conjugate gradients to these normal
+equations without explicitly forming `A' * A`.
 
-tol       : Convergence tolerance (default = 1e-6).
+# Arguments
 
-max_iter  : Maximum number of iterations (default = 1000).
+- `A`: Forward linear operator or matrix. The adjoint must be available as `A'`.
+- `b`: Observed data or right-hand side.
+- `mu`: Quadratic (`L2`) regularization parameter.
+- `x0`: Initial model.
 
-Returns
--------
-x : Array
-    Estimated solution.
+# Keyword arguments
 
-Notes
------
-- Works with both matrices and operator-based solvers.
-- Particularly useful for large inverse problems.
-- Larger values of mu enforce stronger regularization.
-- Convergence is based on the gradient norm.
+- `tol=1e-6`: Stopping tolerance on the norm of the regularized
+  least-squares gradient,
 
-Example
--------
-```julia	
-# Decon example
+      ||A'*(b - A*x) - mu*x||_2.
+
+- `max_iter=1000`: Maximum number of CGLS iterations.
+- `verbose=false`: If `true`, print convergence information.
+- `print_every=20`: Print convergence information every `print_every`
+  iterations. Iteration 0, the final iteration, and a converged
+  iteration are also printed.
+
+# Convergence output
+
+When `verbose=true`, the columns are
+
+- `iter`: Iteration number.
+- `rel_residual`: `||r_k||_2 / ||r_0||_2`, where `r_k = b - A*x_k`.
+- `residual`: `||r_k||_2`.
+- `cost`:
+
+      0.5 * ||A*x_k - b||_2^2
+      + 0.5 * mu * ||x_k||_2^2.
+
+# Returns
+
+- `x`: Estimated solution.
+
+# Notes
+
+- The function returns only the solution array, preserving the original
+  calling convention.
+- `mu = 0` gives the unregularized least-squares problem.
+- The stopping criterion is based on the regularized gradient norm, not
+  directly on the data residual.
+- Works with matrices and operator-based implementations that define
+  both forward and adjoint multiplication.
+
+# Example
+
+```julia
 A = conv1d_op(randn(3))
-x_true = randn(10);
-b = A*x_true 
-x = cgls(A, b, 0.01, zeros(size(x_true)))
+x_true = randn(10)
+b = A * x_true
+
+x = cgls(A, b, 0.01, zeros(size(x_true));
+         tol=1e-6, max_iter=500,
+         verbose=true, print_every=20)
 ```
 """
-function cgls(A, b, mu, x0; tol=1e-6, max_iter=1000)
-    r = b - A * x0           # Initial residual
-    s = A' * r - mu * x0     # Negative gradient of regularized objective
-    p = copy(s)               # Initial search direction
-    old_inner_product = dot(s, s)  # Inner product of s with itself
-    x = copy(x0)             # Do not alias the caller's initial guess
+function cgls(A, b, mu, x0;
+              tol=1e-6, max_iter=1000,
+              verbose=false, print_every=20)
 
-    for k in 1:max_iter
-        q = A * p            # Compute A*p
-   delta = norm(q)^2 + mu * norm(p)^2
-        alpha = old_inner_product / delta 
-        x += alpha * p       # Update solution
-        r -= alpha * q       # Update residual
-        s = A' * r - mu * x  # Compute new gradient
-        new_inner_product = norm(s)^2  # Inner product of new s with itself
-        
-        # Check for convergence
-        if sqrt(new_inner_product) < tol
-            break
-        end
-        
-        beta = new_inner_product / old_inner_product  # Compute beta
-        p = s + beta * p            # Update search direction
-        old_inner_product = new_inner_product  # Update old inner product
+    print_every >= 1 ||
+        throw(ArgumentError("print_every must be at least 1"))
+
+    x = copy(x0)
+
+    r = b - A * x
+    rnorm0_raw = norm(r)
+    rnorm0 = max(rnorm0_raw, eps(Float64))
+
+    s = A' * r - mu * x
+    p = copy(s)
+    old_inner_product = real(dot(s, s))
+
+    if verbose
+        _solver_header("CGLS")
+        cost0 = 0.5 * rnorm0_raw^2 + 0.5 * mu * norm(x)^2
+        _solver_report(0, rnorm0_raw, rnorm0, cost0)
     end
 
-    return x  # Return the computed solution
+    for k in 1:max_iter
+        q = A * p
+
+        delta = norm(q)^2 + mu * norm(p)^2
+        alpha = old_inner_product / delta
+
+        x .+= alpha .* p
+        r .-= alpha .* q
+
+        s = A' * r - mu * x
+        new_inner_product = real(dot(s, s))
+        grad_norm = sqrt(new_inner_product)
+
+        converged = grad_norm < tol
+
+        if verbose &&
+           (k % print_every == 0 || converged || k == max_iter)
+            rnorm = norm(r)
+            cost = 0.5 * rnorm^2 + 0.5 * mu * norm(x)^2
+            _solver_report(k, rnorm, rnorm0, cost)
+        end
+
+        if converged
+            break
+        end
+
+        beta = new_inner_product / old_inner_product
+        p .= s .+ beta .* p
+        old_inner_product = new_inner_product
+    end
+
+    return x
 end
-
-
